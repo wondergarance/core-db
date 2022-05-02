@@ -1,0 +1,4 @@
+com\example\demo\core\StockCoreImpl.class
+com\example\demo\core\repository\StockRepository.class
+com\example\demo\core\model\StockModel.class
+com\example\demo\core\service\StockService.class
