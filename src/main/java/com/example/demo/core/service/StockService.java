@@ -2,8 +2,8 @@ package com.example.demo.core.service;
 
 import com.example.demo.core.model.StockModel;
 import com.example.demo.core.repository.StockRepository;
-import com.example.demo.dto.out.ExtendedShoe;
 import com.example.demo.dto.out.Stock;
+import com.example.demo.dto.out.StockShoe;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -33,7 +33,7 @@ public class StockService {
         return getStock(name).getState();
     }
 
-    public Stock updateStock(String name, List<ExtendedShoe> shoes) {
+    public Stock updateStock(String name, List<StockShoe> shoes) {
         var stockModel = stockRepository.findByName(name).orElse(null);
         if (stockModel != null) {
             updateStockModel(shoes, stockModel);
@@ -65,23 +65,23 @@ public class StockService {
         return null;
     }
 
-    private List<ExtendedShoe> convertToShoeList(String shoesStr) throws JsonProcessingException {
-        var shoes = objectMapper.readValue(shoesStr, ExtendedShoe[].class);
+    private List<StockShoe> convertToShoeList(String shoesStr) throws JsonProcessingException {
+        var shoes = objectMapper.readValue(shoesStr, StockShoe[].class);
         return Arrays.asList(shoes);
     }
 
-    private String convertToShoesJsonStr(List<ExtendedShoe> shoeList) throws JsonProcessingException {
+    private String convertToShoesJsonStr(List<StockShoe> shoeList) throws JsonProcessingException {
         return objectMapper.writeValueAsString(shoeList);
     }
 
 
-    private int getCapacity(List<ExtendedShoe> shoes) {
+    private int getCapacity(List<StockShoe> shoes) {
         return shoes.stream()
-                .map(ExtendedShoe::getQuantity)
+                .map(StockShoe::getQuantity)
                 .reduce(0, Integer::sum);
     }
 
-    private Stock.State getState(List<ExtendedShoe> shoes) {
+    private Stock.State getState(List<StockShoe> shoes) {
         var count = getCapacity(shoes);
         if (count == 0) {
             return Stock.State.EMPTY;
@@ -91,15 +91,21 @@ public class StockService {
         return Stock.State.SOME;
     }
 
-    private void updateStockModel(List<ExtendedShoe> shoes, StockModel stockModel) {
+    private void updateStockModel(List<StockShoe> shoes, StockModel stockModel) {
         try {
-            List<ExtendedShoe> dbShoes = convertToShoeList(stockModel.getShoes());
-            for (ExtendedShoe shoe : shoes) {
-                ExtendedShoe dbShoe = getShoeByfields(dbShoes, shoe.getColor(), shoe.getSize());
+            List<StockShoe> dbShoes = convertToShoeList(stockModel.getShoes());
+            for (StockShoe shoe : shoes) {
+                StockShoe dbShoe = getShoeByfields(dbShoes, shoe.getColor(), shoe.getSize());
                 if (dbShoe != null) {
                     var quantity = shoe.getQuantity();
+                    var capacity = stockModel.getCapacity();
                     if (quantity < 0) {
                         var message = "The minimum capacity of shoes is 0";
+                        LOGGER.error(message);
+                        throw new IllegalArgumentException(message);
+                    }
+                    if (quantity > capacity) {
+                        var message = "The maximum capacity of shoes is " + capacity;
                         LOGGER.error(message);
                         throw new IllegalArgumentException(message);
                     }
@@ -117,8 +123,8 @@ public class StockService {
         }
     }
 
-    private ExtendedShoe getShoeByfields(List<ExtendedShoe> dbShoes, ExtendedShoe.Color color, int size) {
-        for (ExtendedShoe shoe : dbShoes) {
+    private StockShoe getShoeByfields(List<StockShoe> dbShoes, StockShoe.Color color, int size) {
+        for (StockShoe shoe : dbShoes) {
             if (shoe.getColor() == color && shoe.getSize() == size) {
                 return shoe;
             }

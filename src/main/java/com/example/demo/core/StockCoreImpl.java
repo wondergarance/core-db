@@ -1,8 +1,8 @@
 package com.example.demo.core;
 
 import com.example.demo.core.service.StockService;
-import com.example.demo.dto.out.ExtendedShoe;
 import com.example.demo.dto.out.Stock;
+import com.example.demo.dto.out.StockShoe;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
@@ -24,7 +24,7 @@ public class StockCoreImpl extends AbstractStockCore {
     }
 
     @Override
-    public Stock updateStock(String name, List<ExtendedShoe> shoes) {
+    public Stock updateStock(String name, List<StockShoe> shoes) {
         return stockService.updateStock(name, shoes);
     }
 }
